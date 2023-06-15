@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" prefHeight="289.0" prefWidth="266.0" spacing="20.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.jms_zadanie.HelloController">
+  <padding>
+    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+  </padding>
+   <children>
+      <ListView fx:id="messageListView" prefHeight="200.0" prefWidth="200.0" />
+      <HBox prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <TextField fx:id="messageTextField" />
+            <Button fx:id="sendButton" mnemonicParsing="false" onAction="#send" text="Send" />
+         </children>
+      </HBox>
+   </children>
+</VBox>
