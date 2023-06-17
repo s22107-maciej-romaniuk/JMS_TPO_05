@@ -1,5 +1,6 @@
 package com.example.jms_zadanie;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -11,6 +12,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.jms.Topic;
 
 public class HelloController {
     MessageConsumer consumer;
@@ -25,27 +27,41 @@ public class HelloController {
     TextField messageTextField;
     @FXML
     Button sendButton;
-    public void setConsumer(MessageConsumer consumer) throws JMSException {
+    private String name;
+
+    private void setConsumer(MessageConsumer consumer) throws JMSException {
         this.consumer = consumer;
         this.consumer.setMessageListener(message -> {
                 try {
                     // Handle the received message
-                    this.messageListView.getItems().add(((TextMessage) message).getText());
+                    Platform.runLater(() -> {
+                        try {
+                            messageListView.getItems().add(((TextMessage) message).getText());
+                        } catch (JMSException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             });
     }
-    public void setProducer(MessageProducer producer) {
+    private void setProducer(MessageProducer producer) {
         this.producer = producer;
     }
-    public void setSession(Session session) {
+    public void setSession(Session session, Topic topic, String name) throws JMSException {
         this.session = session;
+        this.name = name;
+        setConsumer(session.createDurableSubscriber(topic,name));
+        setProducer(session.createProducer(topic));
     }
 
     public void send() throws JMSException {
         TextMessage textMessage = session.createTextMessage();
-        textMessage.setText(messageTextField.getText());
+        textMessage.setText(this.name + ": " + messageTextField.getText());
         this.producer.send(textMessage);
+
+
     }
 }

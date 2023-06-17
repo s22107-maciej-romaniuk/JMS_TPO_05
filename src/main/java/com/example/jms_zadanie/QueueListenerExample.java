@@ -1,43 +1,46 @@
 package com.example.jms_zadanie;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
-import javax.jms.Connection;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
+import javax.jms.*;
+import java.net.InetAddress;
 
 public class QueueListenerExample extends Application {
 
-    static MessageConsumer consumer;
-    static MessageProducer producer;
     static Session session;
+
+    static Connection connection;
+    static Topic topic;
+    static String user;
+    static String topicName;
     public static void main(String[] args) {
         String brokerUrl = "tcp://localhost:61616";
-        String queueName = "myQueue";
+
+        topicName = args[0];
+        user = args[1];
 
         try {
             // Create a connection factory
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
 
+
             // Create a connection
-            Connection connection = connectionFactory.createConnection();
+            connection = connectionFactory.createConnection();
+            connection.setClientID(user);
             connection.start();
 
             // Create a session
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // Create the queue
-            Queue queue = session.createQueue(queueName);
+            // Create the topic
+            topic = session.createTopic(topicName);
 
-            // Create a message consumer
-            consumer = session.createConsumer(queue);
-            producer = session.createProducer(queue);
             launch();
         } catch (Exception e) {
             e.printStackTrace();
@@ -50,11 +53,19 @@ public class QueueListenerExample extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(QueueListenerExample.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
         HelloController controller = fxmlLoader.getController();
-        controller.setConsumer(consumer);
-        controller.setProducer(producer);
-        controller.setSession(session);
+        controller.setSession(session, topic, user);
         stage.setTitle("Hello!");
         stage.setScene(scene);
         stage.show();
+    }
+
+    @Override
+    public void stop() {
+        // executed when the application shuts down
+        try {
+            connection.close();
+        } catch (JMSException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
