@@ -9,7 +9,10 @@ import javafx.stage.WindowEvent;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import java.net.InetAddress;
+import java.util.Hashtable;
 
 public class QueueListenerExample extends Application {
 
@@ -20,14 +23,17 @@ public class QueueListenerExample extends Application {
     static String user;
     static String topicName;
     public static void main(String[] args) {
-        String brokerUrl = "tcp://localhost:61616";
+        Hashtable env = new Hashtable(11);
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
+        env.put(Context.PROVIDER_URL, "tcp://localhost:61616");
 
         topicName = args[0];
         user = args[1];
 
         try {
+            Context ctx = new InitialContext(env);
             // Create a connection factory
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
+            ConnectionFactory connectionFactory = (ConnectionFactory) ctx.lookup("ConnectionFactory");
 
 
             // Create a connection
